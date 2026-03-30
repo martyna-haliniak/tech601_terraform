@@ -16,9 +16,9 @@
     - [Provider block](#provider-block)
     - [EC2 Instance Resource](#ec2-instance-resource)
     - [Variables (variables.tf)](#variables-variablestf)
-    - [What to ignore](#what-to-ignore)
-      - [GitHub `.gitignore` template for Terraform:](#github-gitignore-template-for-terraform)
-    - [Running Terraform](#running-terraform)
+  - [3. Running Terraform](#3-running-terraform)
+  - [What to ignore](#what-to-ignore)
+    - [GitHub `.gitignore` template for Terraform:](#github-gitignore-template-for-terraform)
 
 
 
@@ -205,19 +205,9 @@ variable "associate_public_ip" {
 * Terraform loads all `.tf` files automatically
 * Add this file to `.gitignore` to avoid exposing secrets
 
-### What to ignore
-
-* `.terraform/`
-* `.terraform.lock.hcl`
-* `*.tfvars`
-* `variables.tf` (custom variable file)
-* `*.tfstate`
-
-#### GitHub `.gitignore` template for Terraform:
-https://raw.githubusercontent.com/github/gitignore/main/Terraform.gitignore
 
 
-### Running Terraform
+## 3. Running Terraform
 
 Run the Terraform commands in this order inside the project folder:
 
@@ -232,3 +222,14 @@ And to delete everything, run:
 ```tf
 terraform destroy
 ```
+
+## What to ignore
+
+* `.terraform/`
+* `.terraform.lock.hcl`
+* `*.tfvars`
+* `variables.tf` (custom variable file)
+* `*.tfstate`
+
+### GitHub `.gitignore` template for Terraform:
+https://raw.githubusercontent.com/github/gitignore/main/Terraform.gitignore
