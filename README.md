@@ -19,6 +19,7 @@
   - [3. Running Terraform](#3-running-terraform)
   - [What to ignore](#what-to-ignore)
     - [GitHub `.gitignore` template for Terraform:](#github-gitignore-template-for-terraform)
+- [Sparta App](#sparta-app)
 
 
 
@@ -233,3 +234,21 @@ terraform destroy
 
 ### GitHub `.gitignore` template for Terraform:
 https://raw.githubusercontent.com/github/gitignore/main/Terraform.gitignore
+
+
+
+
+# Sparta App 
+
+So far added:
+- key pair 
+- SG (with default VPC)
+- user data to run app (`.sh` file, not a variable)
+
+Managed to access the main page of the app through public IP. 
+
+Next:
+- add the database VM and get /posts endpoint working 
+- set up a custom VPC & SG using Terraform 
+- document
+
