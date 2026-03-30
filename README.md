@@ -3,87 +3,232 @@
 - [Terraform \& Infrastructure as Code](#terraform--infrastructure-as-code)
   - [What is Infrastructure as Code (IaC)?](#what-is-infrastructure-as-code-iac)
   - [Two Main Types of IaC](#two-main-types-of-iac)
-    - [a) **Declarative (Functional)**: Ochestration](#a-declarative-functional-ochestration)
-    - [b) **Imperative (Procedural)**: Config Management](#b-imperative-procedural-config-management)
+    - [a) **Declarative (Functional)** — Orchestration](#a-declarative-functional--orchestration)
+    - [b) **Imperative (Procedural)** — Configuration Management](#b-imperative-procedural--configuration-management)
   - [Why is Terraform so popular?](#why-is-terraform-so-popular)
   - [How does Terraform work?](#how-does-terraform-work)
   - [What is `terraform.tfstate`?](#what-is-terraformtfstate)
     - [Why it’s important and sensitive:](#why-its-important-and-sensitive)
+    - [Best practices:](#best-practices)
 - [Terraform Setup](#terraform-setup)
+  - [1. Setting up credentials (env vars)](#1-setting-up-credentials-env-vars)
+  - [2. Setting up `main.tf` for making an EC2 instance](#2-setting-up-maintf-for-making-an-ec2-instance)
+    - [Provider block](#provider-block)
+    - [EC2 Instance Resource](#ec2-instance-resource)
+    - [Variables (variables.tf)](#variables-variablestf)
+    - [What to ignore](#what-to-ignore)
+      - [GitHub `.gitignore` template for Terraform:](#github-gitignore-template-for-terraform)
+    - [Running Terraform](#running-terraform)
+
 
 
 ## What is Infrastructure as Code (IaC)?
-**Infrastructure as Code (IaC)** is the practice of managing and provisioning infrastructure (servers, networks, storage, etc.) using **machine-readable configuration files** instead of manual processes.  
-- Benefits: Consistency, repeatability, version control, and automation. (faster, standardised, collaborative)
+**Infrastructure as Code (IaC)** is the practice of managing and provisioning infrastructure (servers, networks, storage, etc.) using **machine-readable configuration files** instead of manual setups.
+
+**Benefits:** Consistency, repeatability, version control, automation, faster workflows, standardisation, and easier collaboration.
+
 
 
 ## Two Main Types of IaC
-There are **two main types** of IaC:
 
-### a) **Declarative (Functional)**: Ochestration 
-- You **define the desired state** of the infrastructure.
-- Tool figures out **how to achieve it**.
+There are **two main IaC approaches**:
+
+### a) **Declarative (Functional)** — Orchestration
+You **define the desired end state**, and the tool figures out how to reach it.
+
 - Example tools:
   - **Terraform**
-  - **CloudFormation** (AWS)
-- Pros: Easier to manage complex systems, idempotent (running it multiple times doesn’t change existing resources unnecessarily).
+  - **AWS CloudFormation**
 
-Example: this would e.g. build the EC2
+- Characteristics:
+  - Idempotent (running it again doesn’t recreate resources unless needed)
+  - Better for provisioning infrastructure
+  - Focuses on *what* you want, not how to do it  
+  - **Immutable approach:** if changes are needed, it often replaces resources instead of modifying them
 
-Immutable: if changes it will delete and remake things rather than update.
+- Example:  
+  “Create an EC2 instance using this AMI.”  
+  Terraform decides the steps required.
 
-### b) **Imperative (Procedural)**: Config Management
-- You **define the exact steps** to create or change infrastructure.
-- Tool executes **step by step commands**.
+
+### b) **Imperative (Procedural)** — Configuration Management
+You **define the exact steps** the tool must follow.
+
 - Example tools:
   - **Ansible**
   - **Chef**
-- Pros: More control over execution order, useful for configuration management.
 
-Example: go into the EC2 VM and install nginx (dependencies, restarts, updates)
+- Characteristics:
+  - Step-by-step execution
+  - More control over order of actions
+  - Better for installing/configuring software *inside* servers
+  - **Mutable approach:** modifies existing resources instead of replacing them
 
-Mutable: Updates instead of replacing when changes are made
-
----
+- Example:  
+  “SSH into the EC2 machine, install Nginx, install dependencies, restart the service.”
 
 
 
 ## Why is Terraform so popular?
-- **Cloud-agnostic**: Works across AWS, Azure, GCP, and more.  
-- **Declarative & Idempotent**: Only makes changes needed to reach desired state.  
-- **Large community & ecosystem**: Lots of modules and support.  
-- **Open-source**: Free to use and extend.  
+- **Cloud-agnostic** (AWS, Azure, GCP, etc.)
+- **Declarative & idempotent**
+- **Huge module ecosystem** and community support
+- **Open-source**
+- Clean syntax and predictable execution via the Plan → Apply model
 
 
 
 ## How does Terraform work?
-1. Write **.tf configuration files** describing infrastructure.  
-2. Run `terraform init` → initializes working directory, downloads providers.  
-3. Run `terraform plan` → shows what changes Terraform will make.  
-4. Run `terraform apply` → creates or updates resources to match configuration.  
-5. Run `terraform destroy` → deletes all managed resources if needed.  
+1. Write `.tf` files (infrastructure definitions)
+2. `terraform fmt` → automatically format your Terraform files (optional)
+3. `terraform init` → download providers & set up project
+4. `terraform plan` → preview changes
+5. `terraform apply` → create/update infrastructure
+6. `terraform destroy` → remove managed resources
 
-- Terraform uses **providers** to interact with cloud services.
-- It uses a **graph-based approach** to understand resource dependencies.
+Terraform also:
+- Uses **providers** to interact with cloud APIs
+- Builds a **dependency graph** to work out order of operations
 
 
 ## What is `terraform.tfstate`?
-- `terraform.tfstate` is the **state file** that Terraform uses to track resources it manages.  
-- It contains: IDs, metadata, and relationships of all resources.  
+`terraform.tfstate` is Terraform’s **state file**, used to track the resources it manages.
+
+It stores:
+- Resource IDs
+- Metadata
+- Relationships and dependencies
 
 ### Why it’s important and sensitive:
-- Terraform needs it to know **what exists** in your infrastructure.  
-- If lost or corrupted:
-  - Terraform may **recreate existing resources** (can cause downtime or duplication).  
-- Sensitive because it may contain **secrets, access keys, or private resource IDs**.  
-- Best practices:
-  - **Store remotely** (S3, Terraform Cloud, etc.)  
-  - **Lock state** when multiple people are working on the same infrastructure.
+- Terraform uses it to know **what already exists**
+- If corrupted or deleted:
+  - Terraform might **recreate resources** unexpectedly
+- It may contain:
+  - Secrets
+  - Private details
+  - Cloud resource IDs
+
+### Best practices:
+- Store state **remotely** (S3, Terraform Cloud, etc.)
+- Enable **state locking**
+- **Never commit it to Git**
+  - Commit your `.tf` files, but never commit `terraform.tfstate`, `.terraform/`, or secrets.
 
 ---
 
-**Tip:** Always version-control your `.tf` files, but **never commit the `terraform.tfstate`** with sensitive info.
-
-
 # Terraform Setup 
 
+## 1. Setting up credentials (env vars) 
+
+Windows:
+* Settings → Edit environment variables for your account 
+
+* Under **User variables for \<user\>**, click **New...**
+
+* Create two user variables:
+  * AWS_ACCESS_KEY
+  * AWS_SECRET_ACCESS_KEY
+
+  ![new user variable window](images/new_user_variable.png)
+
+    (paste keys into "Variable value")
+
+* Restart terminal, check if set up properly with:
+
+  * Git Bash: `printenv AWS_ACCESS_KEY`
+  * Windows CMD: `echo %AWS_ACCESS_KEY%`
+  * PowerShell: `echo $env:AWS_ACCESS_KEY`
+
+  (same for AWS_SECRET_ACCESS_KEY)
+
+Terraform automatically reads these variables whenever it needs to talk to AWS (e.g., during `terraform init`, `terraform plan`, `terraform apply`).
+
+
+## 2. Setting up `main.tf` for making an EC2 instance
+
+Link: [make-ec2/main.tf](make-ec2/main.tf)
+
+### Provider block
+
+
+```tf
+provider "aws" {
+  region = "eu-west-1"
+}
+```
+
+* Specifies AWS as the provider
+* Sets the region where resources are created
+* Terraform downloads the provider during `terraform init`
+
+
+### EC2 Instance Resource
+
+```tf
+resource "aws_instance" "first_app_instance" {
+  ami                         = var.app_ami_id
+
+  instance_type               = var.instance_type
+
+  associate_public_ip_address = var.associate_public_ip
+
+  tags = {
+    Name = "tech601-martyna-tf-instance"
+  }
+}
+```
+
+* Creates one EC2 instance
+* Pulls values from variables
+* Naming:
+  * `first_app_instance` → Terraform internal name
+  * `tech601-martyna-tf-instance` → AWS console name
+
+
+### Variables (variables.tf)
+
+```tf
+variable "app_ami_id" {
+  default = "ami-02xxxxxc78ff8a"
+}
+
+variable "instance_type" {
+  default = "t3.micro"
+}
+
+variable "associate_public_ip" {
+  default = true
+}
+```
+
+* Keep in a separate file
+* Terraform loads all `.tf` files automatically
+* Add this file to `.gitignore` to avoid exposing secrets
+
+### What to ignore
+
+* `.terraform/`
+* `.terraform.lock.hcl`
+* `*.tfvars`
+* `variables.tf` (custom variable file)
+* `*.tfstate`
+
+#### GitHub `.gitignore` template for Terraform:
+https://raw.githubusercontent.com/github/gitignore/main/Terraform.gitignore
+
+
+### Running Terraform
+
+Run the Terraform commands in this order inside the project folder:
+
+```tf
+terraform init
+terraform fmt
+terraform plan
+terraform apply
+```
+
+And to delete everything, run:
+```tf
+terraform destroy
+```
