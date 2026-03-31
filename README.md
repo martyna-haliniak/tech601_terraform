@@ -22,6 +22,8 @@
 - [Sparta App](#sparta-app)
   - [Front page only](#front-page-only)
   - [Front page + `/posts`](#front-page--posts)
+- [Make GitHub Repo](#make-github-repo)
+  - [Generate access token](#generate-access-token)
 
 
 
@@ -293,3 +295,21 @@ Next:
 Next: 
 * tasks 3 & 4 (security groups with default vpc)
 * custom vpc
+
+
+
+
+
+# Make GitHub Repo 
+
+## Generate access token 
+Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token
+
+Name: terraform-access
+
+![](images/github_generate_token.png)
+
+
+Click **Generate token**, copy it.
+
+
