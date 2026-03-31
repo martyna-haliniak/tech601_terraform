@@ -20,6 +20,8 @@
   - [What to ignore](#what-to-ignore)
     - [GitHub `.gitignore` template for Terraform:](#github-gitignore-template-for-terraform)
 - [Sparta App](#sparta-app)
+  - [Front page only](#front-page-only)
+  - [Front page + `/posts`](#front-page--posts)
 
 
 
@@ -240,9 +242,10 @@ https://raw.githubusercontent.com/github/gitignore/main/Terraform.gitignore
 
 # Sparta App 
 
+## Front page only
 So far added:
 - key pair 
-- SG (with default VPC)
+- SG (with default VPC) - `vpc_security_group_ids` takes sg ids as strings inside square brackets
 - user data to run app (`.sh` file, not a variable)
 
 Managed to access the main page of the app through public IP. 
@@ -252,3 +255,41 @@ Next:
 - set up a custom VPC & SG using Terraform 
 - document
 
+## Front page + `/posts`
+* Add another resource to `main.tf`
+* Can't use a `.sh` file for user data anymore. 
+  Two options:
+  * Inline inside `main.sh` adding <<-EOT at the start and EOT at the end.
+    Reference the DB VM private ID as `aws_instance.db_instance.private_ip`. Order of resources in main doesn't matter.
+  * Create a `.tpl` (template) file instead of `.sh` 
+  
+    (`.sh` will only work without any terraform variables inside it)
+* Inside the app instance resource:
+  
+  ```tf
+  # User data to run app
+  # user_data = file("run_app_only.sh") - doesn't work with the database VM
+  user_data = <<-EOT
+  #!/bin/bash
+  export DB_HOST=mongodb://${aws_instance.db_instance.private_ip}:27017/posts
+  cd /home/ubuntu/tech601-sparta-app/app
+  npm install
+  pm2 start app.js --name app
+  EOT
+  ```
+
+  Can't be added to `variable.tf` because of the DB VM private ip (would have to create a `.tpl` file)
+
+* Add inside app resource:
+  ```tf
+  # Set order (DB VM first)
+  depends_on = [aws_instance.db_instance]
+
+  # Recreate app VM if user data changes (default = false)
+  user_data_replace_on_change = true
+  ```
+
+
+Next: 
+* tasks 3 & 4 (security groups with default vpc)
+* custom vpc
